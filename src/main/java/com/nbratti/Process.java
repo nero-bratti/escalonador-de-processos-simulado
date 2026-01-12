@@ -2,53 +2,51 @@ package com.nbratti;
 
 public class Process {
     //base variables
-    private EState state;
+    private State state;
     private String name;
     private int timeSurge;
     private int timeIO;
-    private int timeTotal;
+    private int estimatedTotalProcessingTime;
     private int order;
     private int priority;
     private int credit;
 
     //auxiliary variables
-    private int timeExecuted;
+    private int runTime;
     private int timeIOExecuted;
 
     //constructor
-    public Process(EState state, String name, int timeSurge, int timeIO, int timeTotal, int order, int priority, int timeExecuted, int timeIOExecuted) {
-        this.state = state;
+    public Process(String name, int estimatedTotalProcessingTime, int order, int priority) {
+        this.state = State.READY;
         this.name = name;
-        this.timeSurge = timeSurge;
-        this.timeIO = timeIO;
-        this.timeTotal = timeTotal;
+        this.estimatedTotalProcessingTime = estimatedTotalProcessingTime;
         this.order = order;
         this.priority = priority;
-        this.timeExecuted = timeExecuted;
-        this.timeIOExecuted = timeIOExecuted;
+
+        this.runTime = 0;
+
+        this.credit = priority;
     }
 
-
-
     //getters and setters
-    public EState getState() {
+    public State getState() {
         return state;
     }
 
     public void setStateReady() {
-        this.state = EState.READY;
+        this.state = State.READY;
     }
 
     public void setStateRunning() {
-        this.state = EState.RUNNING;
+        this.state = State.RUNNING;
     }
 
     public void setStateBlocked() {
-        this.state = EState.BLOCKED;
+        this.state = State.BLOCKED;
     }
 
     public void setStateExit() {
-        this.state = EState.EXIT;
+        this.state = State.EXIT;
     }
 
     public String getName() {
@@ -63,8 +61,8 @@ public class Process {
         return timeIO;
     }
 
-    public int getTimeTotal() {
-        return timeTotal;
+    public int getEstimatedTotalProcessingTime() {
+        return estimatedTotalProcessingTime;
     }
 
     public int getPriority() {
@@ -79,17 +77,16 @@ public class Process {
         return credit;
     }
 
-    public void useCredit() {
+    public void run() {
         this.credit = credit - 1;
-        if (credit < 0) { throw  new IllegalArgumentException("Credit can't be negative"); }
     }
 
-    public int getTimeExecuted() {
-        return timeExecuted;
+    public int getRunTime() {
+        return runTime;
     }
 
-    public void setTimeExecuted(int timeExecuted) {
-        this.timeExecuted = timeExecuted;
+    public void setRunTime(int runTime) {
+        this.runTime = runTime;
     }
 
     public int getTimeIOExecuted() {
@@ -99,4 +96,6 @@ public class Process {
     public void setTimeIOExecuted(int timeIOExecuted) {
         this.timeIOExecuted = timeIOExecuted;
     }
+
+
 }

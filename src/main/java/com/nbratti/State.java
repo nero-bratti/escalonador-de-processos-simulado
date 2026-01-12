@@ -1,6 +1,6 @@
 package com.nbratti;
 
-public enum EState {
+public enum State {
     READY,
     RUNNING,
     BLOCKED,
