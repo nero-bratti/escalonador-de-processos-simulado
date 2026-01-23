@@ -22,12 +22,18 @@ public class Scheduler {
             processRunning.setState(Process.State.RUNNING);
         }
         while(!finishedRunning()){
-            if(processRunning.getCredit() > 0) {
+            if (processRunning.getCredit() > 0) {
                 processRunning.setCredit(processRunning.getCredit() - 1);
                 System.out.println("Processo "+processRunning.getName()+" usou CPU.");
-            } else {
-                processRunning = null;
-                System.out.println("Terminou de executar.");
+            } else if (processRunning.getCredit() == 0) {
+                if (processesReady.peek() != null) {
+                    processRunning = processesReady.poll();
+                    processRunning.setState(Process.State.RUNNING);
+                    processRunning.setCredit(processRunning.getCredit() - 1);
+                } else {
+                    System.out.println("Fim de execução.");
+                    break;
+                }
             }
         }
     }
@@ -48,7 +54,4 @@ public class Scheduler {
     boolean checkCreditFromProcessRunning() {
         return (processRunning.getCredit() > 0);
     }
-
-
-
 }
