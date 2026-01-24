@@ -3,36 +3,30 @@ package com.nbratti;
 import java.util.PriorityQueue;
 
 public class Scheduler {
-    //variables and structures
     private Process processRunning;
-    private PriorityQueue<Process> processesReady;
+    private PriorityQueue<Process> readyProcessesQueue;
 
-    //contructor
     public Scheduler() {
-        processesReady = new PriorityQueue<>();
+        readyProcessesQueue = new PriorityQueue<>();
     }
 
-    //main method
     void runScheduler() {
-        if (processesReady.peek() == null) {
-            System.out.println("Não há processos para executar.");
-            return;
-        } else {
-            processRunning = processesReady.poll();
-            processRunning.setState(Process.State.RUNNING);
-        }
+        //Will return the method if no processes are found in the 'ready' queue
+        if (!startScheduler()) return;
+
         while(!finishedRunning()){
-            if (processRunning.getCredit() > 0) {
-                processRunning.setCredit(processRunning.getCredit() - 1);
-                System.out.println("Processo "+processRunning.getName()+" usou CPU.");
-            } else if (processRunning.getCredit() == 0) {
-                if (processesReady.peek() != null) {
-                    processRunning = processesReady.poll();
-                    processRunning.setState(Process.State.RUNNING);
-                    processRunning.setCredit(processRunning.getCredit() - 1);
+            if (processRunning.isAbleToRun()) {
+                processRunning.run();
+            } else {
+                if (hasReadyProcess()) {
+                    if (!readyProcessesQueue.peek().isAbleToRun()) {
+                        if (processRunning.hasCpuTimeRemaining()) requeueProcessToReady(processRunning);
+                        distributeCredit();
+                    }
+                    pickReadyProcessAndRun();
                 } else {
                     System.out.println("Fim de execução.");
-                    break;
+                    processRunning = null;
                 }
             }
         }
@@ -40,18 +34,49 @@ public class Scheduler {
 
     //other methods
     void addProcess(Process process) {
-        processesReady.add(process);
+        readyProcessesQueue.add(process);
     }
 
     boolean finishedRunning(){
-        return ((processRunning == null) & processesReady.isEmpty());
+        return (processRunning == null & readyProcessesQueue.isEmpty());
     }
 
     /**
-     * Returns true if the running process still has at least one credit,
-     * and false if it doesn't.
+     * Checks the availability of processes to run and,
+     * in a positive case, assigns the first process to {@code processRunning}.
+     * @return {@code true} when it finds at least one process to run; or
+     *         {@code false} when no processes where admitted.
      */
-    boolean checkCreditFromProcessRunning() {
-        return (processRunning.getCredit() > 0);
+    boolean startScheduler() {
+        if (readyProcessesQueue.peek() == null) {
+            System.out.println("Não há processos para executar.");
+            return false;
+        } else {
+            processRunning = readyProcessesQueue.poll();
+            processRunning.setStateRunning();
+            return true;
+        }
+    }
+
+    void distributeCredit() {
+        for (Process process : readyProcessesQueue) {
+            process.giveCredit();
+        }
+    }
+
+    void requeueProcessToReady(Process process) {
+        process.setStateReady();
+        readyProcessesQueue.add(process);
+    }
+
+    void pickReadyProcessAndRun() {
+        if (processRunning.hasCpuTimeRemaining()) requeueProcessToReady(processRunning);
+        processRunning = readyProcessesQueue.poll();
+        processRunning.setStateRunning();
+        processRunning.run();
+    }
+
+    boolean hasReadyProcess() {
+        return !readyProcessesQueue.isEmpty();
     }
 }
